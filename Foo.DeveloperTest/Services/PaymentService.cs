@@ -1,89 +1,41 @@
 ﻿using System.Configuration;
 using Foo.DeveloperTest.Data;
+using Foo.DeveloperTest.Services.Rules.Evaluators;
 using Foo.DeveloperTest.Types;
 
 namespace Foo.DeveloperTest.Services
 {
+    /// <summary>
+    /// An implementation of the <see cref="IPaymentService" /> contract.
+    /// </summary>
     public class PaymentService : IPaymentService
     {
+        private readonly IDataStore _dataStore;
+        private readonly IPaymentRuleEvaluator _paymentRuleEvaluator;
+
+        /// <summary>
+        /// Instantiates a new instance of the Payment Service.
+        /// </summary>
+        public PaymentService(IDataStore dataStore, IPaymentRuleEvaluator paymentRuleEvaluator)
+        {
+            _dataStore = dataStore;
+            _paymentRuleEvaluator = paymentRuleEvaluator;
+        }
+
         public MakePaymentResult MakePayment(MakePaymentRequest request)
         {
-            var dataStoreType = ConfigurationManager.AppSettings["DataStoreType"];
-
-            Account account = null;
-
-            if (dataStoreType == "Backup")
-            {
-                var accountDataStore = new BackupAccountDataStore();
-                account = accountDataStore.GetAccount(request.DebtorAccountNumber);
-            }
-            else
-            {
-                var accountDataStore = new AccountDataStore();
-                account = accountDataStore.GetAccount(request.DebtorAccountNumber);
-            }
-
             var result = new MakePaymentResult();
 
-            switch (request.PaymentScheme)
-            {
-                case PaymentScheme.Bacs:
-                    if (account == null)
-                    {
-                        result.Success = false;
-                    }
-                    else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Bacs))
-                    {
-                        result.Success = false;
-                    }
-                    break;
+            if (request == null) return result;
 
-                case PaymentScheme.FasterPayments:
-                    if (account == null)
-                    {
-                        result.Success = false;
-                    }
-                    else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.FasterPayments))
-                    {
-                        result.Success = false;
-                    }
-                    else if (account.Balance < request.Amount)
-                    {
-                        result.Success = false;
-                    }
-                    break;
+            var account = _dataStore.GetAccount(request.DebtorAccountNumber);
 
-                case PaymentScheme.Chaps:
-                    if (account == null)
-                    {
-                        result.Success = false;
-                    }
-                    else if (!account.AllowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Chaps))
-                    {
-                        result.Success = false;
-                    }
-                    else if (account.Status != AccountStatus.Live)
-                    {
-                        result.Success = false;
-                    }
-                    break;
-            }
+            if (account == null) return result;
+            if (!_paymentRuleEvaluator.ValidPaymentIntent(request, account)) return result;
 
-            if (result.Success)
-            {
-                account.Balance -= request.Amount;
-
-                if (dataStoreType == "Backup")
-                {
-                    var accountDataStore = new BackupAccountDataStore();
-                    accountDataStore.UpdateAccount(account);
-                }
-                else
-                {
-                    var accountDataStore = new AccountDataStore();
-                    accountDataStore.UpdateAccount(account);
-                }
-            }
+            account.Balance -= request.Amount;
+            _dataStore.UpdateAccount(account);
+            result.Success = true;
 
             return result;
         }

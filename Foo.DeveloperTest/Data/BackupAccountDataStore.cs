@@ -2,7 +2,10 @@
 
 namespace Foo.DeveloperTest.Data
 {
-    public class BackupAccountDataStore
+    /// <summary>
+    /// An implementation of <see cref="IDataStore"/> utilizing backup repository.
+    /// </summary>
+    public class BackupAccountDataStore : IDataStore
     {
         public Account GetAccount(string accountNumber)
         {
