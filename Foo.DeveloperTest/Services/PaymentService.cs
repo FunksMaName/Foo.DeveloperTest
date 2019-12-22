@@ -1,5 +1,4 @@
-﻿using System.Configuration;
-using Foo.DeveloperTest.Data;
+﻿using Foo.DeveloperTest.Data;
 using Foo.DeveloperTest.Services.Rules.Evaluators;
 using Foo.DeveloperTest.Types;
 
@@ -22,6 +21,14 @@ namespace Foo.DeveloperTest.Services
             _paymentRuleEvaluator = paymentRuleEvaluator;
         }
 
+
+        /// <summary>
+        /// Actions a payment request.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns>
+        /// An instance of <see cref="MakePaymentResult" /> indicating whether the payment was successful. 
+        /// </returns>
         public MakePaymentResult MakePayment(MakePaymentRequest request)
         {
             var result = new MakePaymentResult();

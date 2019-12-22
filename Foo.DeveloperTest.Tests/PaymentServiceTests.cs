@@ -28,10 +28,21 @@ namespace ClearBank.DeveloperTest.Tests
         }
 
         [Fact]
+        public void MakePayment_WhenPaymentRequestIsNull_ReturnInvalid()
+        {
+            // Arrange / Act.
+            var result = _sut.MakePayment(null);
+
+            // Assert.
+            result.Success.Should().BeFalse("The payment request was null");
+        }
+
+        [Fact]
         public void MakePayment_WhenDataStoreReturnsNullAccount_ReturnInvalid()
         {
             // Arrange. 
             var request = this.Create();
+
             _dataStoreMock.Setup(d => d.GetAccount(request.DebtorAccountNumber)).Returns((Account) null);
             
             // Act.
@@ -42,13 +53,58 @@ namespace ClearBank.DeveloperTest.Tests
         }
 
         [Fact]
-        public void MakePayment_WhenPaymentRequestIsNull_ReturnInvalid()
+        public void MakePayment_WhenInvalidPaymentIntent_ReturnInvalid()
         {
-            // Arrange / Act.
-            var result = _sut.MakePayment(null);
+            // Arrange. 
+            var request = this.Create();
+
+            _dataStoreMock.Setup(d => d.GetAccount(request.DebtorAccountNumber)).Returns((Account)null);
+            _rulesEvaluatorMock.Setup(r => r.ValidPaymentIntent(request, It.IsAny<Account>())).Returns(false);
+
+            // Act.
+            var result = _sut.MakePayment(request);
 
             // Assert.
-            result.Success.Should().BeFalse("The payment request was null");
+            result.Success.Should().BeFalse("Payment validation failure should return an invalid result");
+        }
+
+        [Fact]
+        public void MakePayment_WhenValidPaymentIntent_BalanceAdjustedAccordingly()
+        {
+            // Arrange. 
+            var request = this.Create();
+            var account = new Account { Balance = 963.29m };
+            var closingBalance = account.Balance - request.Amount;
+
+            _dataStoreMock.Setup(d => d.GetAccount(request.DebtorAccountNumber)).Returns(account);
+            _dataStoreMock.Setup(d => d.UpdateAccount(account));
+            _rulesEvaluatorMock.Setup(r => r.ValidPaymentIntent(request, account)).Returns(true);
+
+            // Act.
+            var result = _sut.MakePayment(request);
+
+            // Assert.
+            _dataStoreMock.Verify(u => u.UpdateAccount(account));
+            result.Success.Should().BeTrue();
+            account.Balance.Should().Be(closingBalance);
+        }
+
+        [Fact]
+        public void MakePayment_WhenValidPaymentIntent_ReturnValid()
+        {
+            // Arrange. 
+            var request = this.Create();
+            var  account = new Account { Balance = 963.29m };
+            _dataStoreMock.Setup(d => d.GetAccount(request.DebtorAccountNumber)).Returns(account);
+            _dataStoreMock.Setup(d => d.UpdateAccount(account));
+            _rulesEvaluatorMock.Setup(r => r.ValidPaymentIntent(request, account)).Returns(true);
+
+            // Act.
+            var result = _sut.MakePayment(request);
+
+            // Assert.
+            _dataStoreMock.Verify(u => u.UpdateAccount(account));
+            result.Success.Should().BeTrue();
         }
 
         private MakePaymentRequest Create()

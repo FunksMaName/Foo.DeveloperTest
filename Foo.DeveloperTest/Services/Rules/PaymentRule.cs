@@ -8,7 +8,9 @@ namespace Foo.DeveloperTest.Services.Rules
 
         public  AccountStatus AccountStatus { get; set; }
 
-        public AllowedPaymentSchemes AllowedPaymentSchemes { get; set; }
+        public AllowedPaymentSchemes DebtorPaymentSchemes { get; set; }
+
+        public PaymentScheme CreditorPaymentScheme { get; set; }
 
         public decimal PaymentAmount { get; set; }
     }

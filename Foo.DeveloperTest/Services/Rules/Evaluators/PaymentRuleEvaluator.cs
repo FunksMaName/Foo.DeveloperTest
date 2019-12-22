@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Foo.DeveloperTest.Types;
 
@@ -19,8 +18,9 @@ namespace Foo.DeveloperTest.Services.Rules.Evaluators
             var input = new PaymentRuleInput
             {
                 AccountStatus = account.Status,
-                AllowedPaymentSchemes = account.AllowedPaymentSchemes,
+                DebtorPaymentSchemes = account.AllowedPaymentSchemes,
                 PaymentAmount = paymentRequest.Amount,
+                CreditorPaymentScheme = paymentRequest.PaymentScheme,
                 AccountBalance = account.Balance
             };
 

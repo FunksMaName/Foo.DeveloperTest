@@ -6,7 +6,7 @@ namespace Foo.DeveloperTest.Services.Rules
     {
         public bool Match(PaymentRuleInput paymentRule)
         {
-            if (paymentRule.AllowedPaymentSchemes != AllowedPaymentSchemes.Chaps) return false;
+            if (paymentRule == null) return false;
 
             return paymentRule.AccountStatus != AccountStatus.Live;
         }

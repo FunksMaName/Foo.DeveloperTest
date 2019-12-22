@@ -78,6 +78,9 @@
     <Compile Include="Builders\MakePaymentRequestBuilder.cs" />
     <Compile Include="PaymentServiceTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Rules\AccountStatusRestrictionRuleTests.cs" />
+    <Compile Include="Rules\AccountBalanceRestrictionRuleTests.cs" />
+    <Compile Include="Rules\PaymentSchemeRestrictionRuleTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
