@@ -1,4 +1,6 @@
-﻿using Foo.DeveloperTest.Types;
+﻿using System;
+using System.Linq;
+using Foo.DeveloperTest.Types;
 
 namespace Foo.DeveloperTest.Data
 {
@@ -11,7 +13,7 @@ namespace Foo.DeveloperTest.Data
         public Account GetAccount(string accountNumber)
         {
             // Access database to retrieve account, code removed for brevity 
-            return new Account();
+            return StaticData.Accounts().FirstOrDefault(a => a.AccountNumber.Equals(accountNumber, StringComparison.InvariantCultureIgnoreCase));
         }
 
         /// <inheritdoc cref="IDataStore" />.
